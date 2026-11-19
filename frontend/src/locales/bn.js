@@ -1,5 +1,6 @@
 // Bengali UI strings. Keys are the English source strings (see lib/i18n.js).
 export default {
+  "Every day": "প্রতিদিন",
   // --- Settings first screen in groups (#1105) ---
   "Watches": "ঘড়ি",
   "Set once": "একবার সেট করুন",

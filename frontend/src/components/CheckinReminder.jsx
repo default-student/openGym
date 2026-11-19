@@ -28,7 +28,7 @@ export function reminderKeys(S) {
   return keys
 }
 
-const everyLabel = d => d === 7 ? t('Every week') : d === 14 ? t('Every 2 weeks') : d === 28 ? t('Every 4 weeks') : t('Every {0} days', d)
+const everyLabel = d => d === 1 ? t('Every day') : d === 7 ? t('Every week') : d === 14 ? t('Every 2 weeks') : d === 28 ? t('Every 4 weeks') : t('Every {0} days', d)
 
 function CheckinReminder({ close }) {
   const S = useStore(s => s.S)

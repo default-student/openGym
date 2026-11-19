@@ -1,5 +1,6 @@
 // Spanish UI strings. Keys are the English source strings (see lib/i18n.js).
 export default {
+  "Every day": "Cada día",
   // --- Settings first screen in groups (#1105) ---
   "Watches": "Relojes",
   "Set once": "Una sola vez",

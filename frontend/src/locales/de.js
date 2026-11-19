@@ -5288,6 +5288,7 @@ export default {
   "Every 4 weeks": "Alle 4 Wochen",
   "Every note you wrote, in one place.": "Jede Notiz, die du geschrieben hast, an einem Ort.",
   "Every session": "Jedes Training",
+  "Every day": "Jeden Tag",
   "Every week": "Jede Woche",
   "Every workout here": "Jedes Training hier",
   "Exercise notes": "Übungsnotizen",

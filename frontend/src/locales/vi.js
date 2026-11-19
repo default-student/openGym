@@ -1,5 +1,6 @@
 // Vietnamese UI strings. Generated for openGym.
 export default {
+  "Every day": "Mỗi ngày",
   // --- Settings first screen in groups (#1105) ---
   "Watches": "Đồng hồ",
   "Set once": "Đặt một lần",

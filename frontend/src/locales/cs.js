@@ -1,5 +1,6 @@
 // Czech UI strings. Keys are the English source strings (see lib/i18n.js).
 export default {
+  "Every day": "Každý den",
   // --- Settings first screen in groups (#1105) ---
   "Watches": "Hodinky",
   "Set once": "Nastavit jednou",

@@ -66,6 +66,7 @@ import { isGymSplit, brandAt, withExGym, currentGymId, cleanBrand, BRAND_MAX, pl
 import { exerciseMuscleSnapshot, loadOfWorkouts, MUSCLES, MUSCLE_NAME, muscleWeightsOf, muscleGroupsOf, hasExplicitMuscleMetadata, inMuscleOrder, canonicalMuscle, MUSCLE_MODEL } from './lib/muscles.js'
 import { mergeImport, importHasWeighIn } from './lib/import-csv.js'
 import { addWeighIn, editWeighIn, removeWeighIn, restoreWeighIn, readingsOf, readingTime, allReadings, defaultTimeFor, cleanTime, timeOf, dailyModeOf, DEFAULT_TIME } from './lib/weigh-ins.js'
+import { emptyMeasurement, normalizeMeasurementsState } from './lib/measurements.js'
 import { parseImportFile, mergeImportedRoutines, freshRoutines } from './lib/import-apps.js'
 import { importHevyData, parseHevyAccount, HevyApiError, HEVY_DEV_SETTINGS, mergeHevyRoutines, hevySummaryCounts } from './lib/import-hevy.js'
 import { aliasMatches, choiceOpts, combineNames, rememberPicks } from './lib/import-choices.js'
@@ -407,21 +408,35 @@ function BwSheet({ required, onDone, close, initial, edit }) {
   const editing = useMemo(() => (edit ? readingsOf(st.bodyweight.find(b => b.d === edit.d)).find(r => r.id === String(edit.id)) || null : null), []) // eslint-disable-line react-hooks/exhaustive-deps
   const [v, setV] = useState(editing ? editing.w : Number(initial) > 0 ? Math.round(Number(initial) * 10) / 10 : bw ? bw.w : 70)
   const [date, setDate] = useState(editing ? edit.d : todayISO())
+  const [fat, setFat] = useState(() => st.measurements.find(e => e.d === (editing ? edit.d : todayISO()))?.bodyFat ?? null)
   // Now for today; another day starts on the time of its first weigh-in, or 08:00. Once picked
   // by hand, the time stays when the date changes.
   const [time, setTime] = useState(editing ? (editing.at || DEFAULT_TIME) : timeOf(Date.now()))
   const [timeSet, setTimeSet] = useState(!!editing)
-  const pickDate = d => { setDate(d); if (!timeSet) setTime(defaultTimeFor(st, d, todayISO())) }
+  const pickDate = d => {
+    setDate(d)
+    setFat(st.measurements.find(e => e.d === d)?.bodyFat ?? null)
+    if (!timeSet) setTime(defaultTimeFor(st, d, todayISO()))
+  }
   const save = () => {
     const n = Math.round((v || 0) * 10) / 10
     if (!n || n <= 0) { toast(t('Enter a valid weight')); return }
     if (bwTooHeavy(n, unit)) return
+    if (fat != null && (!Number.isFinite(+fat) || +fat < 0 || +fat > 100)) { toast(t('Body fat must be between 0 and 100%.')); return }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > todayISO()) { toast(t('Choose a valid date')); return }
     // The check-in before a workout is now; a weigh-in at the same time of a day corrects it.
     const at = required ? timeOf(Date.now()) : cleanTime(time) || (date === todayISO() ? timeOf(Date.now()) : DEFAULT_TIME)
     update(s => {
       if (editing) editWeighIn(s, edit.d, edit.id, { d: date, at, w: n })
       else addWeighIn(s, { d: date, at, w: n })
+      if (fat != null) {
+        let entry = s.measurements.find(e => e.d === date)
+        if (!entry) { entry = emptyMeasurement(date, s.customMeasurements); s.measurements.push(entry) }
+        entry.bodyFat = Math.round(+fat * 10) / 10
+        entry.t = Date.now()
+        normalizeMeasurementsState(s)
+        if (!s.measurementEnabled.includes('bodyFat')) s.measurementEnabled.push('bodyFat')
+      }
     })
     close()
     if (onDone) onDone(n); else toast(editing ? t('Weigh-in updated') : t('Weight saved'))
@@ -454,6 +469,13 @@ function BwSheet({ required, onDone, close, initial, edit }) {
           </label>
         </div>}
     <WeightInput value={v} setValue={setV} unit={unit} />
+    <label className="measure-field" style={{ marginTop: 12 }}>
+      <span>{t('Body fat')}</span>
+      <span className="measure-input">
+        <NumberField nullable value={fat} aria-label={t('Body fat')} onChange={setFat} />
+        <i>%</i>
+      </span>
+    </label>
     <div style={{ height: 14 }} />
     <Button variant="primary" onClick={save}>{required ? t('Save & start workout') : t('Save')}</Button>
     {required && <>

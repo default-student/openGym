@@ -1,4 +1,5 @@
 export default {
+  "Every day": "每天",
   // --- Settings first screen in groups (#1105) ---
   "Watches": "手錶",
   "Set once": "設定一次",

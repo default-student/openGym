@@ -66,8 +66,12 @@ jobs:
           LABEL: ${{ github.event.label.name }}
           HAS_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ios') }}
           IOS: ${{ steps.f.outputs.ios }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           run=true
+          # This fork is Android-only. Keep the iOS checks for the upstream project, where
+          # contributions are reviewed, but don't spend macOS runner time on the personal fork.
+          if [ "$REPOSITORY" != "DuarteSantos8/openGym" ]; then run=false; fi
           if [ "$EVENT" = pull_request ]; then
             # A label event runs only for the `ios` label itself; any other label is not a reason.
             if [ "$ACTION" = labeled ]; then [ "$LABEL" = ios ] || run=false

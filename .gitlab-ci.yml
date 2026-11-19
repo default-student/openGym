@@ -538,13 +538,14 @@ build:apk:
       # VITE_MOBILE build + `cap sync` into android/. The app works locally or can pair to an
       # existing server; this job changes no server code. The 180 px exercise media from
       # catalogue/media are packed into the app; a release built locally sets APP_MEDIA_DIR for larger ones.
+      export VITE_APK_UPDATE_REPO="${CI_PROJECT_PATH:-default-student/openGym}"
       npm run build:mobile
       VER="$(node -p "require('./package.json').version")"
       cd android
-      # One fork APK only. The F-Droid flavour has no self-updater pointed at the upstream
-      # DuarteSantos8 releases and remains able to connect to a self-hosted server.
-      ./gradlew --no-daemon assembleFdroidRelease
-      UNSIGNED=app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk
+      # One normal fork APK only. Its updater points to this fork's releases, and it can still
+      # connect to any compatible self-hosted openGym server.
+      ./gradlew --no-daemon assembleSideloadRelease
+      UNSIGNED=app/build/outputs/apk/sideload/release/app-sideload-release-unsigned.apk
       BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
       if [ -n "${ANDROID_KEYSTORE_B64:-}" ]; then
         base64 -d "$ANDROID_KEYSTORE_B64" > "$CI_PROJECT_DIR/.ks.jks"

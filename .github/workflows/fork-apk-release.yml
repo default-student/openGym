@@ -32,10 +32,12 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: frontend
       - name: Build the mobile bundle
+        env:
+          VITE_APK_UPDATE_REPO: default-student/openGym
         run: npm run build:mobile
         working-directory: frontend
       - name: Build the single fork APK
-        run: ./gradlew --no-daemon assembleFdroidRelease
+        run: ./gradlew --no-daemon assembleSideloadRelease
         working-directory: frontend/android
       - name: Sign and verify the APK
         env:
@@ -48,8 +50,8 @@ jobs:
           test -n "$ANDROID_KEYSTORE_PASSWORD"
           test -n "$ANDROID_KEY_ALIAS"
           VERSION="$(node -p "require('./frontend/package.json').version")"
-          APK="$RUNNER_TEMP/openGym-LH-$VERSION.apk"
-          UNSIGNED="frontend/android/app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk"
+          APK="$RUNNER_TEMP/openGym-$VERSION.apk"
+          UNSIGNED="frontend/android/app/build/outputs/apk/sideload/release/app-sideload-release-unsigned.apk"
           BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           printf '%s' "$ANDROID_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/openGym-LH-release.jks"
           "$BT/zipalign" -f -p 4 "$UNSIGNED" "$RUNNER_TEMP/openGym-LH-aligned.apk"
@@ -69,10 +71,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="lh-v$APK_VERSION"
+          TAG="v$APK_VERSION"
           gh release create "$TAG" "$APK_PATH" "$APK_SHA_PATH" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "openGym LH $APK_VERSION" \
-            --notes "Custom Android APK for openGym. This release contains one APK built by the fork pipeline." \
+            --notes "Normal sideloaded Android APK for the openGym fork. This release contains one APK built by the fork pipeline." \
             --latest

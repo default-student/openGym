@@ -37,6 +37,7 @@ import RecoveryHint from '../components/RecoveryHint.jsx'
 import { FastingLine } from '../components/SisterApps.jsx'
 import { ChallengesCard } from '../components/Challenges.jsx'
 import { isOn } from '../lib/modules.js'
+import { latestMeasurement } from '../lib/measurements.js'
 
 // Home = what to do now + a quick glance. Deep charts & history live in Stats.
 export default function Home() {
@@ -59,6 +60,7 @@ export default function Home() {
   // session in progress: the row takes you back to it as an edit, the way the tab bar does.
   const editingSaved = !!S.active?.editingWorkoutId
   const bw = lastBW(S)
+  const bodyFat = latestMeasurement(S, 'bodyFat')
   const prevBW = S.bodyweight.length > 1 ? S.bodyweight[S.bodyweight.length - 2] : null
   const delta = bw && prevBW ? bw.w - prevBW.w : null
 
@@ -263,6 +265,9 @@ export default function Home() {
       {/* one trailing action, Log; the goal lives with the goal line and the weigh-ins below (P2) */}
       <CardHead icon="scale" tint="var(--teal)" title={t('Body weight')} className="bw-head"
         action={<Button size="sm" icon="plus" onClick={() => bwSheet()}>{t('Log')}</Button>} />
+      {bodyFat && <div className="row between small" style={{ marginBottom: 6 }}>
+        <span>{t('Body fat')}</span><span>{fmtNum(bodyFat.value)}% <span className="dim">· {fmtDate(bodyFat.entry.d, true)}</span></span>
+      </div>}
       {bw ? <>
         <div className="row" style={{ gap: 8, alignItems: 'baseline' }}>
           <div className="big">{fmtNum(bw.w)} <span className="muted" style={{ fontSize: 'var(--fs-callout)' }}>{S.unit}</span></div>
@@ -287,13 +292,19 @@ export default function Home() {
         {/* every weigh-in, week by week with its average (Discord 'Weight') */}
         <div className="row between" style={{ marginTop: 4 }}>
           <Button size="sm" variant="ghost" icon="target" className="bw-goal" style={S.targetW ? { color: 'var(--gold-ink)' } : undefined} onClick={goalSheet}>{S.targetW ? fmtNum(S.targetW) : t('Goal')}</Button>
-          <Button size="sm" variant="ghost" trailingIcon="chevronRight" data-tour="home-weighins" onClick={weighInsSheet}>{t('All weigh-ins')}</Button>
+          <div className="row" style={{ gap: 2 }}>
+            <Button size="sm" variant="ghost" trailingIcon="chevronRight" onClick={() => nav('/measurements')}>{t('Body measurements')}</Button>
+            <Button size="sm" variant="ghost" trailingIcon="chevronRight" data-tour="home-weighins" onClick={weighInsSheet}>{t('All weigh-ins')}</Button>
+          </div>
         </div>
       </> : <>
         <div className="muted small">{S.weighIn === false
           ? t('No weigh-ins yet. Log your weight to start the curve.')
           : t("No weigh-ins yet. Log your weight to start the curve (we also ask before every workout).")}</div>
-        <Button size="sm" variant="ghost" icon="target" className="bw-goal" style={{ marginTop: 6, ...(S.targetW ? { color: 'var(--gold-ink)' } : {}) }} onClick={goalSheet}>{S.targetW ? fmtNum(S.targetW) : t('Goal')}</Button>
+        <div className="row between" style={{ marginTop: 6 }}>
+          <Button size="sm" variant="ghost" icon="target" className="bw-goal" style={S.targetW ? { color: 'var(--gold-ink)' } : undefined} onClick={goalSheet}>{S.targetW ? fmtNum(S.targetW) : t('Goal')}</Button>
+          <Button size="sm" variant="ghost" trailingIcon="chevronRight" onClick={() => nav('/measurements')}>{t('Body measurements')}</Button>
+        </div>
       </>}
     </div>}
 

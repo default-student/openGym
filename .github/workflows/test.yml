@@ -493,8 +493,8 @@ jobs:
           docker run --rm opengym-api:default id coach
 
   # The Android app compiles, its JVM unit tests pass, and the phone bundle inside it is the
-  # mobile flavour (check-mobile-bundle runs inside build:mobile). Debug and unsigned: signing
-  # is the release machine's job (scripts/android/build-release.sh).
+  # mobile flavour (check-mobile-bundle runs inside build:mobile). On the upstream project we
+  # also check the other distribution channels. The Android fork builds only its normal APK.
   android:
     needs: changes
     if: needs.changes.outputs.android == 'true'
@@ -523,21 +523,28 @@ jobs:
       - name: Phone bundle + cap sync
         run: npm run build:mobile
         working-directory: frontend
-      # The Wear OS watch app too (wear/, docs/WEAR_OS.md): its JVM tests (the sync protocol, the
-      # codec contract with the phone, the redesign's rules) and a release compile.
-      - name: JVM unit tests, sideload APK, play flavour compiles, F-Droid APK, openGym Offline APK, Wear OS
+      # The fork gets one normal sideload APK. Keep the upstream's channel and watch coverage there.
+      - name: JVM unit tests and normal sideload APK
         working-directory: frontend/android
-        run: ./gradlew --no-daemon testSideloadDebugUnitTest assembleSideloadDebug compilePlayDebugJavaWithJavac assembleFdroidRelease assembleOfflineDebug :wear:testDebugUnitTest :wear:compileReleaseKotlin
+        run: |
+          if [ "$GITHUB_REPOSITORY" = "DuarteSantos8/openGym" ]; then
+            ./gradlew --no-daemon testSideloadDebugUnitTest assembleSideloadDebug compilePlayDebugJavaWithJavac assembleFdroidRelease assembleOfflineDebug :wear:testDebugUnitTest :wear:compileReleaseKotlin
+          else
+            ./gradlew --no-daemon testSideloadDebugUnitTest assembleSideloadRelease
+          fi
       # The build F-Droid makes from this source (unsigned here, as on F-Droid's server): nothing
       # from Google Play services, Firebase or ML Kit in it.
       - name: F-Droid build is free of Google Play services
+        if: github.repository == 'DuarteSantos8/openGym'
         run: scripts/android/check-fdroid.sh
       # openGym Offline (flavour "offline"): no INTERNET permission, no network SDK, no Google.
       - name: openGym Offline has no network
+        if: github.repository == 'DuarteSantos8/openGym'
         run: scripts/android/check-offline.sh
-      # For trying it on a phone: a debug build (its own package, ch.duartesantos.opengym.offline.test),
+      # For trying it on a phone: a debug build (its own package, de.lh.opengym.offline.test),
       # with the repository's 180 px animations only, kept a week.
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: github.repository == 'DuarteSantos8/openGym'
         with:
           name: opengym-offline-debug-apk
           path: frontend/android/app/build/outputs/apk/offline/debug/*.apk

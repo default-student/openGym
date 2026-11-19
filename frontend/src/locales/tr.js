@@ -1,5 +1,6 @@
 // Turkish UI strings. Keys are the English source strings (see lib/i18n.js).
 export default {
+  "Every day": "Her gün",
   // --- Settings first screen in groups (#1105) ---
   "Watches": "Saatler",
   "Set once": "Bir kez ayarla",

@@ -20,7 +20,7 @@ import { measurementValue, MEASUREMENT_FIELDS, BP_KEY } from './measurements.js'
 import { workoutMediaOf, normalizeMediaRef } from './media-refs.js'
 
 export const DEFAULT_TIME = '07:30'
-export const EVERY_CHOICES = [7, 14, 28]
+export const EVERY_CHOICES = [1, 7, 14, 28]
 export const DEFAULT_EVERY = 14
 export const EVERY_MAX = 90
 // How often an item that stays undone comes back after its day: at most this many days apart.
